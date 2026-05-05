@@ -1,0 +1,5 @@
+# .NET multi-output build (msbuild + many subdirs) is slow; raise the timeout.
+task_timeout: 14400  # 4 hours
+
+build_parameters:
+  - "--suppress-variables"
