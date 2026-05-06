@@ -14,6 +14,15 @@ echo @"%BUILD_PREFIX%\dotnet\dotnet.exe" msbuild %%* > "%SRC_DIR%\build_helpers\
 set "WixSkipVsDevCmd=1"
 set "DOTNET_ROOT=%BUILD_PREFIX%\dotnet"
 
+REM Conda-build's legacy MSVC setup sets VCToolsInstallDir / INCLUDE / LIB but
+REM NOT VCTargetsPath, which vcxproj projects need to import Microsoft.Cpp.*
+REM .props from <VS>\MSBuild\Microsoft\VC\v170\. Without it, the imports
+REM resolve to literal "C:\Microsoft.Cpp.Default.props" and fail. Derive the
+REM path via vswhere.
+for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -version [17.0^,18.0^) -property installationPath`) do set "_VS_INSTALL=%%i"
+if not defined _VS_INSTALL exit /b 1
+set "VCTargetsPath=%_VS_INSTALL%\MSBuild\Microsoft\VC\v170\"
+
 REM Pre-generate the three files that build_init.cmd's SetBuildNumber.proj
 REM would normally produce (it fails because GitInfo needs git + a .git dir,
 REM and we have neither).
@@ -36,6 +45,7 @@ REM ============================================================================
 where dotnet || exit /b 1
 where nuget || exit /b 1
 where msbuild
+echo VCTargetsPath=%VCTargetsPath%
 echo --- pinned Sdk references in src/ ---
 powershell -NoProfile -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.proj | Select-String -Pattern 'Microsoft.Build.Traversal' | Select-Object -First 5"
 echo ====================
