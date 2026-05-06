@@ -72,6 +72,14 @@ REM ============================================================================
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.proj | ForEach-Object { $c = Get-Content -Raw $_.FullName; $n = $c -replace '(?m)^[ \t]*<ProjectReference[^>]*Platform=ARM64[^>]*/>\s*\r?\n?', ''; if ($c -ne $n) { Set-Content -NoNewline -Path $_.FullName -Value $n; Write-Host \"stripped ARM64 from: $($_.FullName)\" } }" || exit /b 1
 
 REM ============================================================================
+REM Drop .NET Framework 2.0 (net20) from <TargetFrameworks> lists. The PBP /
+REM dev AMI doesn't have .NET Framework 3.5 SP1 installed (provides net20
+REM backcompat); installing it requires a Windows Feature with offline media.
+REM Briefcase/Anaconda installers don't use net20-targeted custom actions.
+REM ============================================================================
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.csproj | ForEach-Object { $c = Get-Content -Raw $_.FullName; $n = $c -replace '<TargetFrameworks>([^<]*?);net20([^<]*?)</TargetFrameworks>', '<TargetFrameworks>$1$2</TargetFrameworks>' -replace '<TargetFrameworks>net20;([^<]*?)</TargetFrameworks>', '<TargetFrameworks>$1</TargetFrameworks>' -replace '<TargetFrameworks>net20</TargetFrameworks>', '<TargetFramework>net472</TargetFramework>'; if ($c -ne $n) { Set-Content -NoNewline -Path $_.FullName -Value $n; Write-Host \"stripped net20 from: $($_.FullName)\" } }" || exit /b 1
+
+REM ============================================================================
 REM Diagnostics -- keep until build is green; trim afterwards.
 REM ============================================================================
 where dotnet || exit /b 1
