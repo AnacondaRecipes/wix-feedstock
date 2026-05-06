@@ -7,12 +7,17 @@ REM ============================================================================
 
 set "PATH=%SRC_DIR%\build_helpers;%PATH%"
 
-REM msbuild.cmd shim that defers to `dotnet msbuild`. The PBP win-64 AMI ships
-REM VS2022 BuildTools without the .NET SDK component.
-echo @"%BUILD_PREFIX%\dotnet\dotnet.exe" msbuild %%* > "%SRC_DIR%\build_helpers\msbuild.cmd"
+REM Note: previous attempts used a `msbuild.cmd` shim that forwarded to
+REM `dotnet msbuild`. That worked for SDK resolution but broke vcxproj C++
+REM compilation -- VS's C++ tasks (Microsoft.Build.CPPTasks) target .NET
+REM Framework and use Microsoft.Build.Utilities.CanonicalTrackedOutputFiles,
+REM which dotnet msbuild's .NET Core MSBuild doesn't expose.
+REM Fall back to VS BuildTools' msbuild.exe (full-framework). SDK resolution
+REM is then handled via MSBuildSDKsPath + inline-pinned Sdk references.
 
 set "WixSkipVsDevCmd=1"
 set "DOTNET_ROOT=%BUILD_PREFIX%\dotnet"
+set "MSBuildSDKsPath=%BUILD_PREFIX%\dotnet\sdk\8.0.100\Sdks"
 
 REM Conda-build's legacy MSVC setup sets VCToolsInstallDir / INCLUDE / LIB but
 REM NOT VCTargetsPath, which vcxproj projects need to import Microsoft.Cpp.*
@@ -52,8 +57,11 @@ where dotnet || exit /b 1
 where nuget || exit /b 1
 where msbuild
 echo VCTargetsPath=%VCTargetsPath%
-echo --- pinned Sdk references in src/ ---
-powershell -NoProfile -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.proj | Select-String -Pattern 'Microsoft.Build.Traversal' | Select-Object -First 5"
+echo MSBuildSDKsPath=%MSBuildSDKsPath%
+echo --- contents of dotnet SDK Sdks/ ---
+if exist "%MSBuildSDKsPath%" (dir /B "%MSBuildSDKsPath%") else (echo MISSING: %MSBuildSDKsPath%)
+echo --- contents of Microsoft.NET.Sdk/Sdk ---
+if exist "%MSBuildSDKsPath%\Microsoft.NET.Sdk\Sdk" (dir /B "%MSBuildSDKsPath%\Microsoft.NET.Sdk\Sdk") else (echo MISSING: %MSBuildSDKsPath%\Microsoft.NET.Sdk\Sdk)
 echo ====================
 
 REM ============================================================================
