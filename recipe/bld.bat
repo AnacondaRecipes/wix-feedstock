@@ -92,6 +92,12 @@ REM RuntimeTargetsCopyLocalItems flow -- triggers wixnative.vcxproj
 REM ARM64 build outside the <ProjectReference> patterns.
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.targets,*.props | ForEach-Object { $lines = Get-Content $_.FullName; $out = $lines | Where-Object { $_ -notmatch 'ARM64' -and $_ -notmatch 'win-arm64' }; if ($out.Count -ne $lines.Count) { Set-Content -Path $_.FullName -Value $out; Write-Host \"stripped ARM64 lines from: $($_.FullName)\" } }" || exit /b 1
 
+REM Delete platform-specific *_arm64.wxs files in each ext's wixlib dir.
+REM WiX SDK auto-includes all .wxs files in the wixproj dir; the _arm64
+REM variants set $(var.platform)=arm64 then try bindpath.<ca>.arm64,
+REM which fails (we don't build ARM64 utilbe/utilca/etc) -- error WIX0103.
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *_arm64.wxs,*_ARM64.wxs | ForEach-Object { Remove-Item -Force $_.FullName; Write-Host \"deleted ARM64 wxs: $($_.FullName)\" }"
+
 REM ============================================================================
 REM Drop legacy .NET Framework targets (net20, net35, net40) from
 REM <TargetFrameworks> lists. The dev / PBP AMIs don't have .NET Framework
