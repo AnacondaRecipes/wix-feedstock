@@ -37,7 +37,7 @@ REM Run vsdevcmd to set up the full MSVC + Windows SDK env (VCTargetsPath,
 REM full INCLUDE/LIB/LIBPATH including ucrt/shared/um subdirs). Conda-build's
 REM "legacy MSVC compiler setup" leaves INCLUDE missing the Windows SDK
 REM headers (mscoree.h, etc.).
-call "%_VS_INSTALL%\Common7\Tools\vsdevcmd.bat" -no_logo -arch=x64 -no_telemetry || exit /b 1
+call "%_VS_INSTALL%\Common7\Tools\vsdevcmd.bat" -no_logo -arch=x64 || exit /b 1
 
 REM Pre-generate the three files that build_init.cmd's SetBuildNumber.proj
 REM would normally produce (it fails because GitInfo needs git + a .git dir,
