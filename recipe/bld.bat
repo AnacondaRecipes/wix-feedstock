@@ -98,6 +98,13 @@ REM variants set $(var.platform)=arm64 then try bindpath.<ca>.arm64,
 REM which fails (we don't build ARM64 utilbe/utilca/etc) -- error WIX0103.
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *_arm64.wxs,*_ARM64.wxs | ForEach-Object { Remove-Item -Force $_.FullName; Write-Host \"deleted ARM64 wxs: $($_.FullName)\" }"
 
+REM Strip arm64 from <?foreach PLATFORM in x86;x64;arm64?> directives in
+REM .wxi/.wxs files. Even with _arm64.wxs deleted, NetFx's wixlib has
+REM foreach loops in the _Platform.wxi and NetCoreShared.wxs that iterate
+REM x86;x64;arm64 unconditionally -- triggers bindpath.netcoresearch.arm64
+REM which doesn't exist (no ARM64 native build).
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.wxi,*.wxs | ForEach-Object { $c = Get-Content -Raw $_.FullName; $n = $c -replace '(<\?foreach[^?]*);arm64', '$1' -replace '(<\?foreach[^?]*)arm64;', '$1'; if ($c -ne $n) { Set-Content -NoNewline -Path $_.FullName -Value $n; Write-Host \"stripped arm64 from foreach in: $($_.FullName)\" } }" || exit /b 1
+
 REM ============================================================================
 REM Drop legacy .NET Framework targets (net20, net35, net40) from
 REM <TargetFrameworks> lists. The dev / PBP AMIs don't have .NET Framework
