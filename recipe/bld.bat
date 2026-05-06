@@ -77,6 +77,14 @@ REM wix.csproj cascades into wixnative.vcxproj being compiled for ARM64,
 REM which fails LNK1181 because dutil/wcautil weren't built for ARM64.
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.csproj | ForEach-Object { $c = Get-Content -Raw $_.FullName; $n = $c -replace ';win-arm64', '' -replace 'win-arm64;', ''; if ($c -ne $n) { Set-Content -NoNewline -Path $_.FullName -Value $n; Write-Host \"stripped win-arm64 RID from: $($_.FullName)\" } }" || exit /b 1
 
+REM Strip ARM64 platform configurations from .sln files. wix.sln (and
+REM others) define ARM64 in SolutionConfigurationPlatforms and Project-
+REM ConfigurationPlatforms sections. `msbuild wix.sln` builds for ALL
+REM configured platforms by default, including ARM64 -- which then tries
+REM to link wixnative.vcxproj against ARM64 dutil.lib (not built).
+REM Drop every line containing 'ARM64' from .sln files (line-based format).
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.sln | ForEach-Object { $lines = Get-Content $_.FullName; $out = $lines | Where-Object { $_ -notmatch 'ARM64' }; if ($out.Count -ne $lines.Count) { Set-Content -Path $_.FullName -Value $out; Write-Host \"stripped ARM64 lines from: $($_.FullName)\" } }" || exit /b 1
+
 REM ============================================================================
 REM Drop legacy .NET Framework targets (net20, net35, net40) from
 REM <TargetFrameworks> lists. The dev / PBP AMIs don't have .NET Framework
