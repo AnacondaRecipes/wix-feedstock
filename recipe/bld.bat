@@ -8,6 +8,14 @@ set "PATH=%SRC_DIR%\build_helpers;%PATH%"
 where dotnet || exit /b 1
 where nuget || exit /b 1
 
+REM PBP win-64 AMI ships VS2022 BuildTools without the .NET SDK component, so
+REM VS's MSBuild can't locate Microsoft.NET.Sdk in its own install. Point
+REM MSBuild at the conda-installed dotnet SDK's Sdks directory and drop a
+REM global.json so the SDK resolver pins to the exact version we provide.
+set "DOTNET_ROOT=%BUILD_PREFIX%\dotnet"
+set "MSBuildSDKsPath=%BUILD_PREFIX%\dotnet\sdk\8.0.100\Sdks"
+echo {"sdk": {"version": "8.0.100", "rollForward": "latestFeature"}} > global.json
+
 REM Run upstream build. devbuild.cmd locates VS2022 via vswhere and shells
 REM into a Developer Command Prompt before invoking msbuild.
 call devbuild.cmd release || exit /b 1
