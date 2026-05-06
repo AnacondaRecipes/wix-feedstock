@@ -19,6 +19,12 @@ set "WixSkipVsDevCmd=1"
 set "DOTNET_ROOT=%BUILD_PREFIX%\dotnet"
 set "MSBuildSDKsPath=%BUILD_PREFIX%\dotnet\sdk\8.0.100\Sdks"
 
+REM Disable .NET workload manifest resolution. Microsoft.NET.Sdk.ImportWorkloads.props
+REM imports the special "Microsoft.NET.SDK.WorkloadAutoImportPropsLocator" SDK,
+REM which probes dotnet's sdk-manifests directory. We don't target any .NET
+REM workload (mobile, browser, etc.) so this is purely a stumbling block.
+set "MSBuildEnableWorkloadResolver=false"
+
 REM Conda-build's legacy MSVC setup sets VCToolsInstallDir / INCLUDE / LIB but
 REM NOT VCTargetsPath, which vcxproj projects need to import Microsoft.Cpp.*
 REM .props from <VS>\MSBuild\Microsoft\VC\v170\. Without it, the imports
