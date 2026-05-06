@@ -72,12 +72,14 @@ REM ============================================================================
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.proj | ForEach-Object { $c = Get-Content -Raw $_.FullName; $n = $c -replace '(?m)^[ \t]*<ProjectReference[^>]*Platform=ARM64[^>]*/>\s*\r?\n?', ''; if ($c -ne $n) { Set-Content -NoNewline -Path $_.FullName -Value $n; Write-Host \"stripped ARM64 from: $($_.FullName)\" } }" || exit /b 1
 
 REM ============================================================================
-REM Drop .NET Framework 2.0 (net20) from <TargetFrameworks> lists. The PBP /
-REM dev AMI doesn't have .NET Framework 3.5 SP1 installed (provides net20
-REM backcompat); installing it requires a Windows Feature with offline media.
-REM Briefcase/Anaconda installers don't use net20-targeted custom actions.
+REM Drop legacy .NET Framework targets (net20, net35, net40) from
+REM <TargetFrameworks> lists. The dev / PBP AMIs don't have .NET Framework
+REM 3.5 SP1 installed (providing net20/net35 backcompat); on Server it's a
+REM Windows Feature requiring offline install media. Briefcase / Anaconda
+REM installers don't use these legacy custom action targets -- netstandard2.0
+REM and net472 are sufficient.
 REM ============================================================================
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.csproj | ForEach-Object { $c = Get-Content -Raw $_.FullName; $n = $c -replace '<TargetFrameworks>([^<]*?);net20([^<]*?)</TargetFrameworks>', '<TargetFrameworks>$1$2</TargetFrameworks>' -replace '<TargetFrameworks>net20;([^<]*?)</TargetFrameworks>', '<TargetFrameworks>$1</TargetFrameworks>' -replace '<TargetFrameworks>net20</TargetFrameworks>', '<TargetFramework>net472</TargetFramework>'; if ($c -ne $n) { Set-Content -NoNewline -Path $_.FullName -Value $n; Write-Host \"stripped net20 from: $($_.FullName)\" } }" || exit /b 1
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$legacy = @('net20','net35','net40'); Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.csproj | ForEach-Object { $c = Get-Content -Raw $_.FullName; $n = $c; foreach ($t in $legacy) { $n = $n -replace \";$t(?=[;<])\", '' -replace \"(?<=>)$t;\", '' -replace \"<TargetFrameworks>$t</TargetFrameworks>\", '<TargetFramework>net472</TargetFramework>' }; if ($c -ne $n) { Set-Content -NoNewline -Path $_.FullName -Value $n; Write-Host \"stripped legacy frameworks from: $($_.FullName)\" } }" || exit /b 1
 
 REM ============================================================================
 REM Diagnostics -- keep until build is green; trim afterwards.
