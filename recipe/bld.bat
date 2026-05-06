@@ -5,30 +5,30 @@ REM ============================================================================
 REM Stage build helpers and pre-generated MSBuild config.
 REM ============================================================================
 
-REM nuget.exe build helper on PATH (never staged into %PREFIX%).
 set "PATH=%SRC_DIR%\build_helpers;%PATH%"
 
-REM Drop a msbuild.cmd shim that defers to `dotnet msbuild`. The PBP win-64
-REM AMI ships VS2022 BuildTools without the .NET SDK component, so VS's
-REM MSBuild can't load Microsoft.NET.Sdk / WorkloadAutoImportPropsLocator.
-REM The conda-installed dotnet 8 SDK has the proper resolver pipeline.
+REM msbuild.cmd shim that defers to `dotnet msbuild`. The PBP win-64 AMI ships
+REM VS2022 BuildTools without the .NET SDK component.
 echo @"%BUILD_PREFIX%\dotnet\dotnet.exe" msbuild %%* > "%SRC_DIR%\build_helpers\msbuild.cmd"
 
-REM Skip devbuild.cmd's vsdevcmd re-activation. Conda-build already set up
-REM MSVC env (VCToolsInstallDir, INCLUDE, LIB) during legacy compiler setup.
 set "WixSkipVsDevCmd=1"
 set "DOTNET_ROOT=%BUILD_PREFIX%\dotnet"
 
 REM Pre-generate the three files that build_init.cmd's SetBuildNumber.proj
-REM would normally produce. SetBuildNumber.proj uses GitInfo against a .git
-REM directory that doesn't exist (we extract from a tarball), so it fails
-REM and never writes these files. build_init.cmd doesn't propagate the
-REM failure (no `|| exit /b`), so the build continues -- but downstream
-REM subdirs need these files to resolve MSBuild SDK references.
+REM would normally produce (it fails because GitInfo needs git + a .git dir,
+REM and we have neither).
 copy /Y "%RECIPE_DIR%\global.json" "%SRC_DIR%\global.json" || exit /b 1
 copy /Y "%RECIPE_DIR%\Directory.Packages.props" "%SRC_DIR%\Directory.Packages.props" || exit /b 1
 mkdir "%SRC_DIR%\build" 2>nul
 copy /Y "%RECIPE_DIR%\wixver.props" "%SRC_DIR%\build\wixver.props" || exit /b 1
+
+REM ============================================================================
+REM Pin SDK versions inline in every <Project Sdk="..."> reference. NuGetSdk-
+REM Resolver isn't reliably picking up global.json in our build env (likely a
+REM walk-up issue from devbuild's per-subdir `pushd`s); inline pinning bypasses
+REM the resolver entirely. Versions match what global.json.pp would have set.
+REM ============================================================================
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.proj,*.csproj,*.vcxproj | ForEach-Object { $c = Get-Content -Raw $_.FullName; $n = $c -replace 'Sdk=\"Microsoft.Build.Traversal\"', 'Sdk=\"Microsoft.Build.Traversal/3.2.0\"' -replace 'Sdk=\"Microsoft.Build.NoTargets\"(?!/)', 'Sdk=\"Microsoft.Build.NoTargets/3.5.6\"'; if ($c -ne $n) { Set-Content -NoNewline -Path $_.FullName -Value $n; Write-Host \"patched: $($_.FullName)\" } }" || exit /b 1
 
 REM ============================================================================
 REM Diagnostics -- keep until build is green; trim afterwards.
@@ -36,15 +36,8 @@ REM ============================================================================
 where dotnet || exit /b 1
 where nuget || exit /b 1
 where msbuild
-echo DOTNET_ROOT=%DOTNET_ROOT%
-echo WixSkipVsDevCmd=%WixSkipVsDevCmd%
-echo VCToolsInstallDir=%VCToolsInstallDir%
-echo --- global.json ---
-type "%SRC_DIR%\global.json"
-echo --- Directory.Packages.props (head) ---
-type "%SRC_DIR%\Directory.Packages.props" | findstr /N "^" | findstr "^[1-9]:" | findstr "^[1-5]:"
-echo --- wixver.props ---
-type "%SRC_DIR%\build\wixver.props"
+echo --- pinned Sdk references in src/ ---
+powershell -NoProfile -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.proj | Select-String -Pattern 'Microsoft.Build.Traversal' | Select-Object -First 5"
 echo ====================
 
 REM ============================================================================
@@ -63,7 +56,6 @@ for %%f in (build\artifacts\WixToolset.*.wixext.*.nupkg) do (
   copy /Y "%%f" "%LIBRARY_PREFIX%\wix\nupkgs\" || exit /b 1
 )
 
-REM Tiny shim on PATH that calls into sdk\wix\wix.exe.
 mkdir "%LIBRARY_BIN%" 2>nul
 echo @"%%LIBRARY_PREFIX%%\wix\sdk\wix\wix.exe" %%* > "%LIBRARY_BIN%\wix.bat"
 
