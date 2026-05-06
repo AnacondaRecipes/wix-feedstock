@@ -19,8 +19,14 @@ REM NOT VCTargetsPath, which vcxproj projects need to import Microsoft.Cpp.*
 REM .props from <VS>\MSBuild\Microsoft\VC\v170\. Without it, the imports
 REM resolve to literal "C:\Microsoft.Cpp.Default.props" and fail. Derive the
 REM path via vswhere.
-for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -version [17.0^,18.0^) -property installationPath`) do set "_VS_INSTALL=%%i"
-if not defined _VS_INSTALL exit /b 1
+REM `-products *` is required to match BuildTools (default vswhere only matches
+REM Community/Pro/Enterprise products).
+for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -products * -version [17.0^,18.0^) -property installationPath`) do set "_VS_INSTALL=%%i"
+echo _VS_INSTALL=%_VS_INSTALL%
+if not defined _VS_INSTALL (
+  echo ERROR: vswhere did not find a VS 2022 install
+  exit /b 1
+)
 set "VCTargetsPath=%_VS_INSTALL%\MSBuild\Microsoft\VC\v170\"
 
 REM Pre-generate the three files that build_init.cmd's SetBuildNumber.proj
