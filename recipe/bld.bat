@@ -43,7 +43,10 @@ echo ====================
 REM ============================================================================
 REM Run upstream build.
 REM ============================================================================
-call devbuild.cmd release || exit /b 1
+REM devbuild.cmd's first step is `src\clean.cmd`, which `rd /s/q ..\build`,
+REM deletes `..\global.json`, `..\Directory.Packages.props`, etc. -- wiping
+REM out everything we just pre-staged. The `inc` flag skips clean.cmd.
+call devbuild.cmd release inc || exit /b 1
 
 REM Stage outputs.
 mkdir "%LIBRARY_PREFIX%\wix" 2>nul
