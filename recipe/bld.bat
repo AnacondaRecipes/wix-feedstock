@@ -66,6 +66,12 @@ echo MSBuildSDKsPath=%MSBuildSDKsPath%
 echo VCToolsInstallDir=%VCToolsInstallDir%
 echo WindowsSdkDir=%WindowsSdkDir%
 echo INCLUDE=%INCLUDE%
+echo --- mscoree.h availability check ---
+if exist "%WindowsSdkDir%Include\%WindowsSDKVersion%um\mscoree.h" (echo FOUND in WindowsSDK um\) else (echo MISSING in WindowsSDK um\)
+echo --- NETFXSDK present? ---
+if exist "C:\Program Files (x86)\Windows Kits\NETFXSDK" (dir /B "C:\Program Files (x86)\Windows Kits\NETFXSDK") else (echo MISSING C:\Program Files (x86)\Windows Kits\NETFXSDK)
+echo --- search filesystem for mscoree.h ---
+where /R "C:\Program Files (x86)\Windows Kits" mscoree.h 2>nul
 echo --- contents of dotnet SDK Sdks/ ---
 if exist "%MSBuildSDKsPath%" (dir /B "%MSBuildSDKsPath%") else (echo MISSING: %MSBuildSDKsPath%)
 echo --- contents of Microsoft.NET.Sdk/Sdk ---
