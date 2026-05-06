@@ -69,7 +69,13 @@ REM Anaconda installers are x86_64 only -- ARM64 isn't needed. Cross-compiling
 REM ARM64 with a vsdevcmd activated for x64 produces LNK1112 (obj machine-type
 REM mismatch). Skip the ARM64 build target entirely.
 REM ============================================================================
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.proj | ForEach-Object { $c = Get-Content -Raw $_.FullName; $n = $c -replace '(?m)^[ \t]*<ProjectReference[^>]*Platform=ARM64[^>]*/>\s*\r?\n?', ''; if ($c -ne $n) { Set-Content -NoNewline -Path $_.FullName -Value $n; Write-Host \"stripped ARM64 from: $($_.FullName)\" } }" || exit /b 1
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.proj | ForEach-Object { $c = Get-Content -Raw $_.FullName; $n = $c -replace '(?m)^[ \t]*<ProjectReference[^>]*Platform=ARM64[^>]*/>\s*\r?\n?', '' -replace '(?m)^[ \t]*<ProjectReference[^>]*RuntimeIdentifier=win-arm64[^>]*/>\s*\r?\n?', ''; if ($c -ne $n) { Set-Content -NoNewline -Path $_.FullName -Value $n; Write-Host \"stripped ARM64 from: $($_.FullName)\" } }" || exit /b 1
+
+REM Also strip ;win-arm64 from <RuntimeIdentifiers> lists in .csproj files
+REM (e.g. wix.csproj has 'win-x86;win-x64;win-arm64'). Without this, building
+REM wix.csproj cascades into wixnative.vcxproj being compiled for ARM64,
+REM which fails LNK1181 because dutil/wcautil weren't built for ARM64.
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.csproj | ForEach-Object { $c = Get-Content -Raw $_.FullName; $n = $c -replace ';win-arm64', '' -replace 'win-arm64;', ''; if ($c -ne $n) { Set-Content -NoNewline -Path $_.FullName -Value $n; Write-Host \"stripped win-arm64 RID from: $($_.FullName)\" } }" || exit /b 1
 
 REM ============================================================================
 REM Drop legacy .NET Framework targets (net20, net35, net40) from
