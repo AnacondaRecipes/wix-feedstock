@@ -14,8 +14,6 @@ package:
 source:
   - url: https://github.com/wixtoolset/wix/archive/refs/tags/v{{ version }}.tar.gz
     sha256: 78c08fea127a2219c916023da90cc00780553088353702482d2942eae57ca586
-    patches:
-      - patches/0001-add-resourcecompile-culture-default.patch
   - url: https://dist.nuget.org/win-x86-commandline/v{{ nuget_version }}/nuget.exe
     fn: nuget.exe
     folder: build_helpers
