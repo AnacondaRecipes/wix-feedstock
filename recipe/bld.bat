@@ -53,7 +53,7 @@ REM src/Directory.vcxproj.props. Newer MSBuild promotes "missing Culture
 REM metadata" to error MSB4096 on Directory.vcxproj.targets line 21 (where
 REM ver.rc references %(Culture) for batched evaluation). Combined with WiX's
 REM `-warnaserror` flag, the dtf build aborts despite SfxCA.dll being created.
-powershell -NoProfile -Command "$f = '%SRC_DIR%\src\Directory.vcxproj.props'; $c = Get-Content -Raw $f; if ($c -notmatch '<Culture>') { $c = $c -replace '(<AdditionalIncludeDirectories>\$\(ProjectAdditionalResourceIncludeDirectories\);%\(AdditionalIncludeDirectories\)</AdditionalIncludeDirectories>)', '$1`n      <Culture>0x0409</Culture>'; Set-Content -NoNewline -Path $f -Value $c; Write-Host 'patched Directory.vcxproj.props with Culture metadata' }" || exit /b 1
+powershell -NoProfile -Command "$f = '%SRC_DIR%\src\Directory.vcxproj.props'; $c = Get-Content -Raw $f; if ($c -notmatch '<Culture>') { $new = $c -replace '(</AdditionalIncludeDirectories>)(\s+</ResourceCompile>)', '$1<Culture>0x0409</Culture>$2'; if ($new -eq $c) { Write-Host 'ERROR: regex did not match -- check Directory.vcxproj.props structure' -ForegroundColor Red; exit 1 } else { Set-Content -NoNewline -Path $f -Value $new; Write-Host 'patched Directory.vcxproj.props with Culture metadata' } } else { Write-Host 'Culture already present, skipping' }" || exit /b 1
 
 REM ============================================================================
 REM Pin SDK versions inline in every <Project Sdk="..."> reference. NuGetSdk-
