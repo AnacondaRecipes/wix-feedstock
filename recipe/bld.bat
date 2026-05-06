@@ -93,7 +93,7 @@ REM Microsoft.VisualStudio.QualityTools.UnitTestFramework (deprecated MSTest
 REM v1 from VS 2010, not on our build env). Replacing with empty MSBuild
 REM projects keeps dtf.sln happy without compiling any test code.
 REM ============================================================================
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src\dtf\test' -Recurse -Include *.csproj | ForEach-Object { Set-Content -NoNewline -Path $_.FullName -Value '<Project ToolsVersion=\"Current\" DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\"><Target Name=\"Build\" /><Target Name=\"Pack\" /><Target Name=\"Restore\" /><Target Name=\"Publish\" /></Project>'; Write-Host \"stubbed test csproj: $($_.FullName)\" }" || exit /b 1
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src\dtf\test' -Recurse -Include *.csproj | ForEach-Object { Set-Content -NoNewline -Path $_.FullName -Value '<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>net472</TargetFramework><IsPackable>false</IsPackable><EnableDefaultCompileItems>false</EnableDefaultCompileItems></PropertyGroup></Project>'; Write-Host \"stubbed test csproj: $($_.FullName)\" }" || exit /b 1
 
 REM ============================================================================
 REM Diagnostics -- keep until build is green; trim afterwards.
