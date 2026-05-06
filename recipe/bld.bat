@@ -85,6 +85,13 @@ REM to link wixnative.vcxproj against ARM64 dutil.lib (not built).
 REM Drop every line containing 'ARM64' from .sln files (line-based format).
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.sln | ForEach-Object { $lines = Get-Content $_.FullName; $out = $lines | Where-Object { $_ -notmatch 'ARM64' }; if ($out.Count -ne $lines.Count) { Set-Content -Path $_.FullName -Value $out; Write-Host \"stripped ARM64 lines from: $($_.FullName)\" } }" || exit /b 1
 
+REM Strip lines referencing ARM64 / win-arm64 from .targets and .props
+REM files. src/wix/Directory.Build.targets has <NativeLibrary> and <None>
+REM items referencing \ARM64\wixnative.exe for the wix.csproj net6.0
+REM RuntimeTargetsCopyLocalItems flow -- triggers wixnative.vcxproj
+REM ARM64 build outside the <ProjectReference> patterns.
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.targets,*.props | ForEach-Object { $lines = Get-Content $_.FullName; $out = $lines | Where-Object { $_ -notmatch 'ARM64' -and $_ -notmatch 'win-arm64' }; if ($out.Count -ne $lines.Count) { Set-Content -Path $_.FullName -Value $out; Write-Host \"stripped ARM64 lines from: $($_.FullName)\" } }" || exit /b 1
+
 REM ============================================================================
 REM Drop legacy .NET Framework targets (net20, net35, net40) from
 REM <TargetFrameworks> lists. The dev / PBP AMIs don't have .NET Framework
