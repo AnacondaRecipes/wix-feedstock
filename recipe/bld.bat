@@ -25,20 +25,19 @@ REM which probes dotnet's sdk-manifests directory. We don't target any .NET
 REM workload (mobile, browser, etc.) so this is purely a stumbling block.
 set "MSBuildEnableWorkloadResolver=false"
 
-REM Conda-build's legacy MSVC setup sets VCToolsInstallDir / INCLUDE / LIB but
-REM NOT VCTargetsPath, which vcxproj projects need to import Microsoft.Cpp.*
-REM .props from <VS>\MSBuild\Microsoft\VC\v170\. Without it, the imports
-REM resolve to literal "C:\Microsoft.Cpp.Default.props" and fail. Derive the
-REM path via vswhere.
-REM `-products *` is required to match BuildTools (default vswhere only matches
-REM Community/Pro/Enterprise products).
+REM Locate VS 2022 install (BuildTools requires `-products *`).
 for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -products * -version [17.0^,18.0^) -property installationPath`) do set "_VS_INSTALL=%%i"
 echo _VS_INSTALL=%_VS_INSTALL%
 if not defined _VS_INSTALL (
   echo ERROR: vswhere did not find a VS 2022 install
   exit /b 1
 )
-set "VCTargetsPath=%_VS_INSTALL%\MSBuild\Microsoft\VC\v170\"
+
+REM Run vsdevcmd to set up the full MSVC + Windows SDK env (VCTargetsPath,
+REM full INCLUDE/LIB/LIBPATH including ucrt/shared/um subdirs). Conda-build's
+REM "legacy MSVC compiler setup" leaves INCLUDE missing the Windows SDK
+REM headers (mscoree.h, etc.).
+call "%_VS_INSTALL%\Common7\Tools\vsdevcmd.bat" -no_logo -arch=x64 -no_telemetry || exit /b 1
 
 REM Pre-generate the three files that build_init.cmd's SetBuildNumber.proj
 REM would normally produce (it fails because GitInfo needs git + a .git dir,
@@ -64,6 +63,9 @@ where nuget || exit /b 1
 where msbuild
 echo VCTargetsPath=%VCTargetsPath%
 echo MSBuildSDKsPath=%MSBuildSDKsPath%
+echo VCToolsInstallDir=%VCToolsInstallDir%
+echo WindowsSdkDir=%WindowsSdkDir%
+echo INCLUDE=%INCLUDE%
 echo --- contents of dotnet SDK Sdks/ ---
 if exist "%MSBuildSDKsPath%" (dir /B "%MSBuildSDKsPath%") else (echo MISSING: %MSBuildSDKsPath%)
 echo --- contents of Microsoft.NET.Sdk/Sdk ---
