@@ -64,6 +64,14 @@ REM ============================================================================
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.proj,*.csproj,*.vcxproj | ForEach-Object { $c = Get-Content -Raw $_.FullName; $n = $c -replace 'Sdk=\"Microsoft.Build.Traversal\"', 'Sdk=\"Microsoft.Build.Traversal/3.2.0\"' -replace 'Sdk=\"Microsoft.Build.NoTargets\"(?!/)', 'Sdk=\"Microsoft.Build.NoTargets/3.5.6\"'; if ($c -ne $n) { Set-Content -NoNewline -Path $_.FullName -Value $n; Write-Host \"patched: $($_.FullName)\" } }" || exit /b 1
 
 REM ============================================================================
+REM Strip ARM64 ProjectReferences from _t.proj traversal files. Briefcase /
+REM Anaconda installers are x86_64 only -- ARM64 isn't needed. Cross-compiling
+REM ARM64 with a vsdevcmd activated for x64 produces LNK1112 (obj machine-type
+REM mismatch). Skip the ARM64 build target entirely.
+REM ============================================================================
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.proj | ForEach-Object { $c = Get-Content -Raw $_.FullName; $n = $c -replace '(?m)^[ \t]*<ProjectReference[^>]*Platform=ARM64[^>]*/>\s*\r?\n?', ''; if ($c -ne $n) { Set-Content -NoNewline -Path $_.FullName -Value $n; Write-Host \"stripped ARM64 from: $($_.FullName)\" } }" || exit /b 1
+
+REM ============================================================================
 REM Diagnostics -- keep until build is green; trim afterwards.
 REM ============================================================================
 where dotnet || exit /b 1
