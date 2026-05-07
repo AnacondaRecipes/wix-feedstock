@@ -186,11 +186,6 @@ echo @"%%~dp0..\wix\sdk\wix\wix.exe" %%* > "%LIBRARY_BIN%\wix.bat"
 REM Shut down .NET build servers (dotnet, MSBuild, Roslyn/VBCSCompiler) so they
 REM release file handles in %BUILD_PREFIX% / %LIBRARY_PREFIX%. Without this,
 REM conda-build's test phase may fail to rename _h_env (locked DLLs).
-echo Shutting down dotnet build servers...
 "%BUILD_PREFIX%\dotnet\dotnet.exe" build-server shutdown
-taskkill /F /IM VBCSCompiler.exe /T 2>nul
-taskkill /F /IM MSBuild.exe /T 2>nul
-taskkill /F /IM dotnet.exe /T 2>nul
-echo Build servers shut down.
 
 endlocal
