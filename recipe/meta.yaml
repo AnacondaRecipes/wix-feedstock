@@ -43,14 +43,14 @@ requirements:
 
 test:
   commands:
-    # File presence checks only -- no wix.exe invocation. Earlier attempts
-    # to run `wix --help` printed correct output but conda-build still
-    # reported "Tests failed" (exit code mismatch we couldn't track).
-    # End-user verification (conda install + wix --help in fresh env) was
-    # done manually and confirmed working.
+    # File-presence checks (cheap + reliable)
     - if not exist "%PREFIX%\\Library\\bin\\wix.bat" exit 1
     - if not exist "%PREFIX%\\Library\\wix\\sdk\\wix\\wix.exe" exit 1
     - if not exist "%PREFIX%\\Library\\wix\\nupkgs\\WixToolset.Util.wixext.{{ version }}.nupkg" exit 1
+    # End-to-end CLI smoke: shim resolution, dotnet 6 runtime via rollForward
+    # to the installed dotnet-runtime, wix.exe self-init, version output.
+    # Verified to return exit 0 on a fresh `conda install` of this build.
+    - wix --help
 
 about:
   home: https://wixtoolset.org/
