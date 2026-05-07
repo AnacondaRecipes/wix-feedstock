@@ -191,7 +191,12 @@ for %%f in (build\artifacts\WixToolset.*.wixext.*.nupkg) do (
   copy /Y "%%f" "%LIBRARY_PREFIX%\wix\nupkgs\" || exit /b 1
 )
 
+REM Self-relative shim: %~dp0 expands to the directory containing wix.bat
+REM (i.e. <env>\Library\bin\). Walking up to ..\wix\sdk\wix\wix.exe gives
+REM <env>\Library\wix\sdk\wix\wix.exe regardless of the env's actual path.
+REM Avoids depending on %LIBRARY_PREFIX% which is conda-build-only and not
+REM set during normal `conda activate`.
 mkdir "%LIBRARY_BIN%" 2>nul
-echo @"%%LIBRARY_PREFIX%%\wix\sdk\wix\wix.exe" %%* > "%LIBRARY_BIN%\wix.bat"
+echo @"%%~dp0..\wix\sdk\wix\wix.exe" %%* > "%LIBRARY_BIN%\wix.bat"
 
 endlocal
