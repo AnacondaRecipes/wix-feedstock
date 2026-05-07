@@ -183,4 +183,9 @@ REM set during normal `conda activate`.
 mkdir "%LIBRARY_BIN%" 2>nul
 echo @"%%~dp0..\wix\sdk\wix\wix.exe" %%* > "%LIBRARY_BIN%\wix.bat"
 
+REM Shut down .NET build servers (dotnet, MSBuild, Roslyn/VBCSCompiler) so they
+REM release file handles in %BUILD_PREFIX% / %LIBRARY_PREFIX%. Without this,
+REM conda-build's test phase fails to rename _h_env (locked DLLs).
+"%BUILD_PREFIX%\dotnet\dotnet.exe" build-server shutdown 1>nul 2>nul
+
 endlocal
