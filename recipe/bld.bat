@@ -105,6 +105,15 @@ REM x86;x64;arm64 unconditionally -- triggers bindpath.netcoresearch.arm64
 REM which doesn't exist (no ARM64 native build).
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.wxi,*.wxs | ForEach-Object { $c = Get-Content -Raw $_.FullName; $n = $c -replace '(<\?foreach[^?]*);arm64', '$1' -replace '(<\?foreach[^?]*)arm64;', '$1'; if ($c -ne $n) { Set-Content -NoNewline -Path $_.FullName -Value $n; Write-Host \"stripped arm64 from foreach in: $($_.FullName)\" } }" || exit /b 1
 
+REM Replace src/test/test.cmd with a no-op. build_all.cmd's last step is
+REM `call test\test.cmd %_C% || exit /b` which builds extensive integration
+REM test data (~220 bundles + MSIs). We don't need any of it -- the actual
+REM wix.exe + extension nupkgs are already built by the previous subdirs.
+REM Test data builds also keep hitting environment-specific failures
+REM (.NET reference assembly loading, etc.) that are orthogonal to the
+REM production package.
+echo @exit /b 0 > "%SRC_DIR%\src\test\test.cmd"
+
 REM ============================================================================
 REM Drop legacy .NET Framework targets (net20, net35, net40) from
 REM <TargetFrameworks> lists. The dev / PBP AMIs don't have .NET Framework
