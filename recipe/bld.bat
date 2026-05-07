@@ -150,27 +150,11 @@ REM ============================================================================
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.cmd | ForEach-Object { $lines = Get-Content $_.FullName; $out = New-Object System.Collections.ArrayList; $inTest = $false; $stripped = $false; foreach ($line in $lines) { if (-not $inTest -and $line -match '^\s*dotnet test') { $inTest = $true; $stripped = $true; if ($line -match '\|\| exit /b') { $inTest = $false }; continue }; if ($inTest) { if ($line -match '\|\| exit /b') { $inTest = $false }; continue }; [void]$out.Add($line) }; if ($stripped) { Set-Content -Path $_.FullName -Value $out; Write-Host \"stripped dotnet test from: $($_.FullName)\" } }" || exit /b 1
 
 REM ============================================================================
-REM Diagnostics -- keep until build is green; trim afterwards.
+REM Sanity check: dotnet + nuget reachable. (msbuild also required, but
+REM not on a stable PATH location until after vsdevcmd above.)
 REM ============================================================================
 where dotnet || exit /b 1
 where nuget || exit /b 1
-where msbuild
-echo VCTargetsPath=%VCTargetsPath%
-echo MSBuildSDKsPath=%MSBuildSDKsPath%
-echo VCToolsInstallDir=%VCToolsInstallDir%
-echo WindowsSdkDir=%WindowsSdkDir%
-echo INCLUDE=%INCLUDE%
-echo --- mscoree.h availability check ---
-powershell -NoProfile -Command "if (Test-Path \"$env:WindowsSdkDir\Include\$env:WindowsSDKVersion`um\mscoree.h\") { 'FOUND in WindowsSDK um' } else { 'MISSING in WindowsSDK um' }"
-echo --- NETFXSDK versions present? ---
-powershell -NoProfile -Command "if (Test-Path 'C:\Program Files (x86)\Windows Kits\NETFXSDK') { Get-ChildItem 'C:\Program Files (x86)\Windows Kits\NETFXSDK' -Name } else { 'NETFXSDK not installed' }"
-echo --- filesystem search for mscoree.h ---
-powershell -NoProfile -Command "Get-ChildItem -Path 'C:\Program Files (x86)\Windows Kits' -Filter mscoree.h -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName"
-echo --- contents of dotnet SDK Sdks/ ---
-if exist "%MSBuildSDKsPath%" (dir /B "%MSBuildSDKsPath%") else (echo MISSING: %MSBuildSDKsPath%)
-echo --- contents of Microsoft.NET.Sdk/Sdk ---
-if exist "%MSBuildSDKsPath%\Microsoft.NET.Sdk\Sdk" (dir /B "%MSBuildSDKsPath%\Microsoft.NET.Sdk\Sdk") else (echo MISSING: %MSBuildSDKsPath%\Microsoft.NET.Sdk\Sdk)
-echo ====================
 
 REM ============================================================================
 REM Run upstream build.
