@@ -138,7 +138,7 @@ REM logical line spanning multiple physical lines via `^` continuations,
 REM ending at `|| exit /b`. PowerShell processes line-by-line, dropping
 REM lines starting with `dotnet test` through the next `|| exit /b`.
 REM ============================================================================
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.cmd | ForEach-Object { $lines = Get-Content $_.FullName; $out = New-Object System.Collections.ArrayList; $inTest = $false; $stripped = $false; foreach ($line in $lines) { if (-not $inTest -and $line -match '^\s*dotnet test') { $inTest = $true; $stripped = $true; continue }; if ($inTest) { if ($line -match '\|\| exit /b') { $inTest = $false }; continue }; [void]$out.Add($line) }; if ($stripped) { Set-Content -Path $_.FullName -Value $out; Write-Host \"stripped dotnet test from: $($_.FullName)\" } }" || exit /b 1
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SRC_DIR%\src' -Recurse -Include *.cmd | ForEach-Object { $lines = Get-Content $_.FullName; $out = New-Object System.Collections.ArrayList; $inTest = $false; $stripped = $false; foreach ($line in $lines) { if (-not $inTest -and $line -match '^\s*dotnet test') { $inTest = $true; $stripped = $true; if ($line -match '\|\| exit /b') { $inTest = $false }; continue }; if ($inTest) { if ($line -match '\|\| exit /b') { $inTest = $false }; continue }; [void]$out.Add($line) }; if ($stripped) { Set-Content -Path $_.FullName -Value $out; Write-Host \"stripped dotnet test from: $($_.FullName)\" } }" || exit /b 1
 
 REM ============================================================================
 REM Diagnostics -- keep until build is green; trim afterwards.
