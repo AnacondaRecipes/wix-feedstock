@@ -43,7 +43,15 @@ requirements:
 
 test:
   commands:
-    - echo test
+    # File-presence checks (cheap + reliable)
+    - if not exist "%PREFIX%\Library\bin\wix.bat" exit 1
+    - if not exist "%PREFIX%\Library\wix\sdk\wix\wix.exe" exit 1
+    - if not exist "%PREFIX%\Library\wix\nupkgs\WixToolset.Util.wixext.{{ version }}.nupkg" exit 1
+    # End-to-end CLI smoke. Must use `call` because `wix` resolves to the
+    # `wix.bat` shim; without `call`, cmd's bat-to-bat semantics terminate
+    # the parent run_test.bat before it reaches `exit /B 0`, causing a
+    # spurious exit -1 and "TESTS FAILED" even though wix.exe returned 0.
+    - call wix --help
 
 about:
   home: https://wixtoolset.org/
