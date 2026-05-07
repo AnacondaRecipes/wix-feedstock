@@ -54,9 +54,11 @@ test:
     # tests we skip would have covered this).
     - wix build smoke.wxs -o smoke.msi
     - if not exist smoke.msi exit 1
-    # Confirm the staged SDK and at least one extension nupkg are present
-    - if not exist "%LIBRARY_PREFIX%\\wix\\sdk\\wix\\wix.exe" exit 1
-    - if not exist "%LIBRARY_PREFIX%\\wix\\nupkgs\\WixToolset.Util.wixext.{{ version }}.nupkg" exit 1
+    # Confirm the staged SDK and at least one extension nupkg are present.
+    # Use %PREFIX%\Library since %LIBRARY_PREFIX% is only defined during the
+    # build phase, not the test phase.
+    - if not exist "%PREFIX%\\Library\\wix\\sdk\\wix\\wix.exe" exit 1
+    - if not exist "%PREFIX%\\Library\\wix\\nupkgs\\WixToolset.Util.wixext.{{ version }}.nupkg" exit 1
 
 about:
   home: https://wixtoolset.org/
