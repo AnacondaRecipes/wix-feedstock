@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Minimal WiX 5 source for the conda-build test phase. Compiles into a
+  trivial MSI that registers a single registry value. Purpose: verify
+  wix.exe can actually run and produce an MSI from a .wxs file.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="WixSmokeTest"
+           Manufacturer="Anaconda"
+           Version="1.0.0"
+           UpgradeCode="0a01d0a4-4b8d-4f3e-9c8d-1234567890ab">
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="WixSmokeTest">
+        <Component Id="MainComponent" Guid="0b02e1b5-5c9e-5a4f-ad9e-2345678901bc">
+          <RegistryValue Root="HKLM"
+                         Key="Software\Anaconda\WixSmokeTest"
+                         Name="Installed"
+                         Type="integer"
+                         Value="1"
+                         KeyPath="yes" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+    <Feature Id="MainFeature">
+      <ComponentRef Id="MainComponent" />
+    </Feature>
+  </Package>
+</Wix>
