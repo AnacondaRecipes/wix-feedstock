@@ -183,9 +183,13 @@ REM set during normal `conda activate`.
 mkdir "%LIBRARY_BIN%" 2>nul
 echo @"%%~dp0..\wix\sdk\wix\wix.exe" %%* > "%LIBRARY_BIN%\wix.bat"
 
-REM Shut down .NET build servers (dotnet, MSBuild, Roslyn/VBCSCompiler) so they
+REM Shut down .NET build servers (Roslyn/VBCSCompiler in particular) so they
 REM release file handles in %BUILD_PREFIX% / %LIBRARY_PREFIX%. Without this,
-REM conda-build's test phase may fail to rename _h_env (locked DLLs).
+REM conda-build's test phase fails to rename _h_env (locked DLLs).
+REM `dotnet build-server shutdown` doesn't always catch VBCSCompiler -- fall
+REM back to a targeted taskkill for that specific image only. Do NOT taskkill
+REM dotnet.exe globally; conda-build's own helpers may be running it.
 "%BUILD_PREFIX%\dotnet\dotnet.exe" build-server shutdown
+taskkill /F /IM VBCSCompiler.exe 2>nul
 
 endlocal
