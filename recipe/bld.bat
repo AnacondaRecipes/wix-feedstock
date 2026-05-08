@@ -17,7 +17,18 @@ REM is then handled via MSBuildSDKsPath + inline-pinned Sdk references.
 
 set "WixSkipVsDevCmd=1"
 set "DOTNET_ROOT=%BUILD_PREFIX%\dotnet"
-set "MSBuildSDKsPath=%BUILD_PREFIX%\dotnet\sdk\8.0.100\Sdks"
+
+REM Discover the installed .NET 8 SDK directory dynamically rather than hard-
+REM coding 8.0.100. AR's dotnet-feedstock can ship 8.x patch updates and the
+REM SDK directory name moves with them. The for-loop picks the last 8.x dir
+REM listed by `dir /b` (alphabetical -> latest patch).
+set "MSBuildSDKsPath="
+for /f "delims=" %%i in ('dir /b /ad "%BUILD_PREFIX%\dotnet\sdk\8.*"') do set "MSBuildSDKsPath=%BUILD_PREFIX%\dotnet\sdk\%%i\Sdks"
+if not defined MSBuildSDKsPath (
+  echo ERROR: no .NET 8 SDK found under %BUILD_PREFIX%\dotnet\sdk\
+  exit /b 1
+)
+echo MSBuildSDKsPath=%MSBuildSDKsPath%
 
 REM Disable .NET workload manifest resolution. Microsoft.NET.Sdk.ImportWorkloads.props
 REM imports the special "Microsoft.NET.SDK.WorkloadAutoImportPropsLocator" SDK,
@@ -41,11 +52,13 @@ call "%_VS_INSTALL%\Common7\Tools\vsdevcmd.bat" -no_logo -arch=x64 || exit /b 1
 
 REM Pre-generate the three files that build_init.cmd's SetBuildNumber.proj
 REM would normally produce (it fails because GitInfo needs git + a .git dir,
-REM and we have neither).
-copy /Y "%RECIPE_DIR%\global.json" "%SRC_DIR%\global.json" || exit /b 1
-copy /Y "%RECIPE_DIR%\Directory.Packages.props" "%SRC_DIR%\Directory.Packages.props" || exit /b 1
+REM and we have neither). Source-of-truth for these is `recipe/vs_files/`;
+REM regenerate them from upstream when bumping the WiX version (see comment
+REM in meta.yaml).
+copy /Y "%RECIPE_DIR%\vs_files\global.json" "%SRC_DIR%\global.json" || exit /b 1
+copy /Y "%RECIPE_DIR%\vs_files\Directory.Packages.props" "%SRC_DIR%\Directory.Packages.props" || exit /b 1
 mkdir "%SRC_DIR%\build" 2>nul
-copy /Y "%RECIPE_DIR%\wixver.props" "%SRC_DIR%\build\wixver.props" || exit /b 1
+copy /Y "%RECIPE_DIR%\vs_files\wixver.props" "%SRC_DIR%\build\wixver.props" || exit /b 1
 
 REM ============================================================================
 REM Add <Culture>0x0409</Culture> to ResourceCompile's ItemDefinitionGroup in

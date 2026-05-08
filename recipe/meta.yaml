@@ -7,6 +7,16 @@
 # (binary-repack policy, per Charles 2026-05).
 {% set nuget_version = "6.14.3" %}
 
+# When bumping WiX, regenerate the three files in `recipe/vs_files/` from the
+# upstream source tree:
+#   - global.json                 (msbuild-sdks pins -- check upstream `global.json`)
+#   - Directory.Packages.props    (central package versions -- copy upstream
+#                                  `src/Directory.Packages.props`, bump CVE pins
+#                                  if any flagged)
+#   - wixver.props                (GitInfo-style version values; we hardcode
+#                                  Major/Minor/Patch/Build/Sha to match {{ version }}
+#                                  because GitInfo can't run without a real git repo)
+
 package:
   name: {{ name }}
   version: {{ version }}
