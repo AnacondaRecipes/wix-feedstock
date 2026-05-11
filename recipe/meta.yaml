@@ -77,8 +77,6 @@ about:
     and burn), and the standard set of WiX extensions
     (Util, Bal, NetFx, ComPlus, Dependency, DirectX, Firewall, Http, Iis,
     Msmq, PowerShell, Sql, UI, VisualStudio).
-
-    Built from source — does not ship the upstream `wix-cli-x64.msi` binary.
   dev_url: https://github.com/wixtoolset/wix
   doc_url: https://docs.firegiant.com/wixtoolset/
 
