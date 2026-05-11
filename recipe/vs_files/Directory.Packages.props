@@ -1,0 +1,89 @@
+<Project>
+  <ItemGroup>
+    <PackageVersion Include="WixToolset.Dtf.Compression" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.Dtf.Compression.Cab" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.Dtf.CustomAction" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.Dtf.Resources" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.Dtf.WindowsInstaller" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.Dtf.WindowsInstaller.Package" Version="5.0.2" />
+
+    <PackageVersion Include="WixInternal.TestSupport" Version="5.0.2" />
+    <PackageVersion Include="WixInternal.TestSupport.Native" Version="5.0.2" />
+    <PackageVersion Include="WixInternal.BaseBuildTasks.Sources" Version="5.0.2" />
+
+    <PackageVersion Include="WixToolset.DUtil" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.WcaUtil" Version="5.0.2" />
+
+    <PackageVersion Include="WixToolset.BootstrapperApplicationApi" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.BootstrapperExtensionApi" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.WixStandardBootstrapperApplicationFunctionApi" Version="5.0.2" />
+
+    <PackageVersion Include="WixToolset.Data" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.Extensibility" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.Versioning" Version="5.0.2" />
+
+    <PackageVersion Include="WixToolset.Burn" Version="5.0.2" />
+
+    <PackageVersion Include="WixToolset.Core" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.Core.Burn" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.Core.WindowsInstaller" Version="5.0.2" />
+    <PackageVersion Include="WixInternal.Core.TestPackage" Version="5.0.2" />
+
+    <PackageVersion Include="WixToolset.Heat" Version="5.0.2" />
+
+    <PackageVersion Include="WixToolset.Bal.wixext" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.BootstrapperApplications.wixext" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.Dependency.wixext" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.NetFx.wixext" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.UI.wixext" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.Util.wixext" Version="5.0.2" />
+    <PackageVersion Include="WixToolset.Firewall.wixext" Version="5.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="6.0.1" />
+    <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="4.7.0" />
+    <PackageVersion Include="System.DirectoryServices" Version="4.7.0" />
+    <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="4.7.0" />
+    <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
+    <PackageVersion Include="System.IO.FileSystem.AccessControl" Version="4.7.0" />
+    <PackageVersion Include="System.Net.NetworkInformation" Version="4.3.0" />
+    <PackageVersion Include="System.Reflection.Metadata" Version="1.8.1" />
+    <PackageVersion Include="System.Security.Principal.Windows" Version="4.7.0" />
+    <PackageVersion Include="System.Text.Encoding.CodePages" Version="4.7.1" />
+    <PackageVersion Include="System.Text.Json" Version="6.0.11" />
+
+    <PackageVersion Include="Microsoft.AspNetCore.Owin" Version="3.1.13" />
+    <PackageVersion Include="Microsoft.VisualStudio.Setup.Configuration.Native" Version="3.10.2154" />
+    <PackageVersion Include="Microsoft.Win32.Registry" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="NuGet.Credentials" Version="6.10.1" />
+    <PackageVersion Include="NuGet.Protocol" Version="6.10.1" />
+    <PackageVersion Include="NuGet.Versioning" Version="6.10.1" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="14.3" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="15.7.179" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
+    <PackageVersion Include="GitInfo" Version="2.3.0" />
+
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+    <PackageVersion Include="xunit" Version="2.8.1" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.1" />
+    <PackageVersion Include="xunit.assert" Version="2.8.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.NET.Tools.NETCoreCheck.x86" Version="6.0.0" />
+    <PackageVersion Include="Microsoft.NET.Tools.NETCoreCheck.x64" Version="6.0.0" />
+    <PackageVersion Include="Microsoft.NET.Tools.NETCoreCheck.arm64" Version="6.0.0" />
+  </ItemGroup>
+</Project>

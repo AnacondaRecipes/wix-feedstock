@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <GitInfoFromCache>true</GitInfoFromCache>
+    <GitInfoImported>true</GitInfoImported>
+    <GitBaseVersionMajor>5</GitBaseVersionMajor>
+    <GitBaseVersionMinor>0</GitBaseVersionMinor>
+    <GitBaseVersionPatch>2</GitBaseVersionPatch>
+    <GitCommits>0</GitCommits>
+    <GitSemVerDashLabel></GitSemVerDashLabel>
+    <GitSha>0000000000000000000000000000000000000000</GitSha>
+    <GitRepositoryUrl>https://github.com/wixtoolset/wix</GitRepositoryUrl>
+  </PropertyGroup>
+</Project>
