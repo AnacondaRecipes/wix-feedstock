@@ -40,11 +40,13 @@ build:
 
 requirements:
   build:
-    # .NET 8 SDK — compiles both net6.0 (with RollForward) and net472 targets.
-    # The net472 leg additionally requires the .NET Framework 4.7.2 SDK and
-    # targeting packs to be installed on the build worker (PBP win-64 AMI;
-    # not conda-packageable). MSVC v143 is also required by upstream's
-    # devbuild.cmd (vswhere → vsdevcmd) and must be present on the AMI.
+    # .NET 8 SDK -- compiles both net6.0 (with RollForward) and net472 targets.
+    # The net472 leg additionally requires the .NET Framework 4.7.2 SDK + 4.6.2
+    # targeting packs, and MSVC v143 (incl. the ARM64 toolset) is required by
+    # upstream's devbuild.cmd (vswhere -> vsdevcmd). These are admin-installed
+    # MS components (NDP472-DevPack.exe, vs_buildtools.exe --add ...) -- none of
+    # them are conda packages, so {{ compiler('cxx') }} / compiler('m2w64_*')
+    # cannot satisfy them; they must be pre-installed on the build worker.
     - dotnet >=8.0,<9
   run:
     # wix.exe is published framework-dependent net6.0 with RollForward=Major
@@ -58,9 +60,12 @@ test:
     - if not exist "%PREFIX%\Library\wix\sdk\wix\wix.exe" exit 1
     - if not exist "%PREFIX%\Library\wix\nupkgs\WixToolset.Util.wixext.{{ version }}.nupkg" exit 1
     # End-to-end CLI smoke. Must use:
-    #   1. `call` — `wix` resolves to wix.bat shim; bare invocation cascade-
-    #       terminates run_test.bat before it reaches `exit /B 0`.
-    #   2. `--version` (not `--help`) — wix.exe returns -1 from `--help`
+    #   1. `call` -- `wix` resolves to the `wix.bat` shim. Without `call`,
+    #       cmd's bat-to-bat semantics transfer control to the shim and never
+    #       return, so conda-build's auto-generated run_test.bat wrapper (the
+    #       script conda-build builds around our `test: commands:` block)
+    #       terminates before it reaches its final `exit /B 0`.
+    #   2. `--version` (not `--help`) -- wix.exe returns -1 from `--help`
     #       (no command specified), but 0 from `--version`.
     - call wix --version
 
@@ -69,7 +74,7 @@ about:
   license: MS-RL
   license_family: Other
   license_file: LICENSE.TXT
-  summary: WiX Toolset — create Windows Installer (MSI) packages
+  summary: WiX Toolset -- create Windows Installer (MSI) packages
   description: |
     The WiX Toolset is a set of tools for building Windows Installer
     (MSI) packages from XML source. This package provides the v5.x
